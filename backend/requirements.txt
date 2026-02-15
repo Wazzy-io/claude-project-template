@@ -1,0 +1,30 @@
+# ============================================
+# [PROJECT_NAME] — Dependencias Python
+# ============================================
+
+# Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# Base de datos
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0
+alembic>=1.12.0
+
+# Redis
+redis>=5.0.0
+
+# Utilidades
+python-dotenv>=1.0.0
+httpx>=0.25.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Seguridad
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.0
+
+# Descomentar segun necesidad:
+# anthropic>=0.18.0          # Claude API
+# openai>=1.0.0              # OpenAI API
+# sentry-sdk[fastapi]>=1.40  # Error tracking

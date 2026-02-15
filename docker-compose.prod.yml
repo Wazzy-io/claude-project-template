@@ -1,0 +1,94 @@
+# ============================================
+# [PROJECT_NAME] — Docker Compose PROD overrides
+# ============================================
+# Uso: docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d
+#
+# Diferencias con dev:
+#   - Traefik como reverse proxy con SSL automatico (Let's Encrypt)
+#   - Redes aisladas: "web" (publica) e "internal" (privada)
+#   - Sin puertos expuestos directamente (todo via Traefik)
+#   - Frontend servido con nginx (build estatico)
+#   - Sin PgAdmin, sin hot-reload
+
+services:
+
+  # ---- Reverse Proxy + SSL ----
+  traefik:
+    image: traefik:v3.6
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # HTTP → HTTPS redirect
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      # Let's Encrypt SSL
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt_data:/letsencrypt
+    networks:
+      - web
+
+  # ---- PostgreSQL (red interna, sin puerto expuesto) ----
+  postgres:
+    networks:
+      - internal
+    # NO ports — solo accesible desde la red interna
+
+  # ---- Redis (red interna, sin puerto expuesto) ----
+  redis:
+    networks:
+      - internal
+    # NO ports — solo accesible desde la red interna
+
+  # ---- API Backend ----
+  api:
+    environment:
+      - DEBUG=false
+      - ENVIRONMENT=production
+    networks:
+      - web       # Para que Traefik pueda enrutar
+      - internal  # Para acceder a PostgreSQL y Redis
+    labels:
+      - "traefik.enable=true"
+      # Ruta: api.DOMAIN → este contenedor
+      - "traefik.http.routers.api.rule=Host(`api.${DOMAIN}`)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
+
+  # ---- Frontend (nginx con build estatico) ----
+  # Descomentar cuando tengas frontend:
+  # admin:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   restart: unless-stopped
+  #   networks:
+  #     - web
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.admin.rule=Host(`app.${DOMAIN}`)"
+  #     - "traefik.http.routers.admin.entrypoints=websecure"
+  #     - "traefik.http.routers.admin.tls.certresolver=letsencrypt"
+  #     - "traefik.http.services.admin.loadbalancer.server.port=80"
+
+networks:
+  web:
+    driver: bridge
+  internal:
+    driver: bridge
+    internal: true  # No accesible desde fuera
+
+volumes:
+  letsencrypt_data:

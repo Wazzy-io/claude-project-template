@@ -1,0 +1,63 @@
+# ============================================
+# [PROJECT_NAME] — Docker Compose DEV overrides
+# ============================================
+# Uso: docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d
+#
+# Diferencias con prod:
+#   - Puertos expuestos para acceso directo
+#   - Hot-reload (volumen monta el codigo)
+#   - PgAdmin para gestionar la BD
+#   - Frontend con Vite dev server (HMR)
+
+services:
+
+  postgres:
+    ports:
+      - "${DB_PORT:-5432}:5432"
+
+  redis:
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      # Hot-reload: monta el codigo local para ver cambios en vivo
+      - ./backend/app:/app/app
+    environment:
+      - DEBUG=true
+      - ENVIRONMENT=development
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ---- Frontend (Vite dev server con HMR) ----
+  # Descomentar cuando tengas frontend:
+  # admin:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile.dev
+  #   ports:
+  #     - "${ADMIN_PORT:-3001}:3001"
+  #   volumes:
+  #     - ./frontend/src:/app/src
+  #   environment:
+  #     - VITE_API_URL=http://localhost:${API_PORT:-8000}
+
+  # ---- PgAdmin (solo dev) ----
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@project.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  pgadmin_data:
