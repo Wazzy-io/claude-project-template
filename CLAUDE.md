@@ -58,6 +58,7 @@ Ejemplo: Usuario → API → Servicio → BD → Respuesta
 
 | Skill | Cuándo usarla |
 |-------|---------------|
+| `/bootstrap` | **PRIMERA VEZ**: personalizar template para tu proyecto |
 | `/start-session` | Al abrir sesión de trabajo |
 | `/daily` | Inicio del día: panorama + plan sugerido |
 | `/debug-systematic` | Cuando hay un bug o error |
@@ -68,7 +69,12 @@ Ejemplo: Usuario → API → Servicio → BD → Respuesta
 | `/diagram` | Generar diagramas Mermaid |
 | `/deploy-vps` | Deploy Docker Compose a VPS desde cero |
 
-### Flujo típico
+### Primera vez
+```
+/bootstrap → personaliza todo → levanta Docker → listo
+```
+
+### Flujo típico (despues del bootstrap)
 ```
 /daily → trabajo → /debug-systematic (si bugs) → /verify-and-ship → /update-docs → /project-sync
 ```

@@ -11,17 +11,8 @@ Stack incluido: FastAPI + PostgreSQL 16 + Redis 7 + Traefik SSL + GitHub Actions
 1. Click **"Use this template"** arriba → crear nuevo repo
 2. Clonar: `git clone https://github.com/tu-org/tu-proyecto.git`
 3. Abrir Claude Code: `claude`
-4. Decirle:
-
-```
-Personaliza este template para mi proyecto. Lee BOOTSTRAP.md.
-
-- Nombre: Mi Proyecto
-- Descripcion: [que hace]
-- Dominio: midominio.com (o "todavia no tengo")
-```
-
-5. Claude personaliza todo, levanta Docker, y verifica
+4. Ejecutar: `/bootstrap`
+5. Claude te pregunta los datos, personaliza todo, levanta Docker, y verifica
 6. `/start-session` → a trabajar
 
 ---
@@ -49,10 +40,11 @@ Personaliza este template para mi proyecto. Lee BOOTSTRAP.md.
 | `dev.sh` | Shortcut: `bash dev.sh up/down/logs` |
 | `.github/workflows/deploy.yml` | Auto-deploy on push al VPS |
 
-### Claude Code Skills (9)
+### Claude Code Skills (10)
 
 | Skill | Para que |
 |-------|----------|
+| `/bootstrap` | **Primera vez**: personalizar template |
 | `/start-session` | Cargar contexto al inicio |
 | `/daily` | Resumen diario + plan |
 | `/debug-systematic` | Debug con root cause analysis |
@@ -140,13 +132,7 @@ bash prod.sh ssh        # Terminal en VPS
 
 ## Personalizacion
 
-Ver **[BOOTSTRAP.md](BOOTSTRAP.md)** para la guia completa paso a paso.
-
-Resumen:
-1. Reemplazar `[PROJECT]` y `[PROJECT_NAME]` en todos los archivos
-2. Rellenar `CLAUDE.md` con la info de tu proyecto
-3. `cp .env.dev.example .env.dev` + rellenar valores
-4. `bash dev.sh up` → listo
+Ejecuta `/bootstrap` y Claude hace todo por ti. Ver **[BOOTSTRAP.md](BOOTSTRAP.md)** para la guia manual.
 
 ---
 
